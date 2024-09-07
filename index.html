@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <base href="https://chatamibot.com/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatAmi - Discutez avec votre AI BFF!</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffd54f;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #ff9800;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        #chat-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: 400px;
+            overflow-y: scroll;
+        }
+        #user-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ff9800;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            text-align: right;
+        }
+        .ai-message {
+            background-color: #fff9c4;
+        }
+        #send-button {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        #send-button:hover {
+            background-color: #f57c00;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ChatAmi</h1>
+        <p>Ton AI BFF, toujours là pour rigoler !</p>
+    </header>
+    
+    <div class="container">
+        <div id="chat-container"></div>
+        <input type="text" id="user-input" placeholder="Dis quelque chose de marrant !">
+        <button id="send-button">Envoyer</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(isUser ? 'user-message' : 'ai-message');
+            messageDiv.textContent = content;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, true);
+                userInput.value = '';
+
+                // Appel à l'API pour obtenir la réponse de l'IA
+                axios.post('https://llama3-70b.vercel.app/api?ask=', {
+                    ask: message
+                })
+                .then(response => {
+                    const aiResponse = response.data.reply; // La réponse de l'API
+                    addMessage(aiResponse, false);
+                })
+                .catch(error => {
+                    console.error('Erreur lors de l\'appel API:', error);
+                    addMessage("Oops, je n'ai pas pu répondre !", false);
+                });
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Message de bienvenue
+        addMessage("Salut l'ami ! Je suis ChatAmi, ton AI BFF. Dis-moi quelque chose de marrant !", false);
+    </script>
+</body>
+</html>
